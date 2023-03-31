@@ -71,6 +71,12 @@ class SubjectHandler:
             # self.cosmed_shimmer[k] = remove_na_values(self.cosmed_shimmer[k])
             # self.cosmed_shimmer[k].fillna(method='ffill', inplace=True)
 
+    def write_to_files(self):
+        if not os.path.exists("../Result/"+subject + "_" + version+"/" ):
+            os.makedirs("../Result/"+subject + "_" + version+"/" )
+        for file in self.cosmed_shimmer.keys():
+            self.cosmed_shimmer[file].to_csv(full_name = "../Result/" + subject + "_" + version + "/"+ file,index=False)
+
     def show_cos_shim(self,file):
         return self.cosmed_shimmer[file]
 
@@ -91,4 +97,6 @@ if __name__ == '__main__':
             subject_handle.verify_shimmer()
             print("         Combining cosmed and shimmer ...")
             subject_handle.combine_cos_shim()
+            print("         Write to files ...")
+            subject_handle.write_to_files()
     print("done")
