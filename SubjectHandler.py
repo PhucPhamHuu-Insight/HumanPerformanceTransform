@@ -79,7 +79,7 @@ if __name__ == '__main__':
     testing_log = "../allsubjects_testing_log.csv"
     for folder in os.listdir("../"):
         print("Folder",folder)
-        if "subject" in folder and "allsubjects" not in folder:
+        if "subject" in folder and "allsubjects" not in folder and "subject3" not in folder:
             subject = folder.split("_")[0]
             version = folder.split("_")[1]
             print("         Initializing ...")
