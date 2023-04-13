@@ -1,5 +1,5 @@
+
 import pandas as pd
-import numpy as np
 from datetime import datetime
 import os
 
@@ -16,7 +16,10 @@ class ShimmerHandler:
         for file in self.shimmer_files:
             full_name = "../" + subject + "_" + version + "/"  + file
             # print(full_name)
-            self.full_shimmer_file[file] = pd.read_csv(full_name, skiprows=1, header=[0, 1]).iloc[:, :-1]
+            if (self.subject =="subject3" and self.version=="1"):
+                self.full_shimmer_file[file] = pd.read_csv(full_name, skiprows=1, header=[0, 1],delimiter="/t").iloc[:, :-1]
+            else:
+                self.full_shimmer_file[file] = pd.read_csv(full_name, skiprows=1, header=[0, 1]).iloc[:, :-1]
             self.full_shimmer_file[file].columns = self.full_shimmer_file[file].columns.map('_'.join)
 
     def transform(self):

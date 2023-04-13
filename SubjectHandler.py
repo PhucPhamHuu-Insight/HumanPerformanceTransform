@@ -1,14 +1,6 @@
 import pandas as pd
-import time
-from pathlib import Path
 import os
-import warnings
-import numpy as np
-from tabulate import tabulate
 from datetime import datetime, timedelta
-import matplotlib.pyplot as plt
-import string
-import re
 from CosmedHandler import CosmedHandler
 from ShimmerHandler import ShimmerHandler
 
@@ -75,7 +67,7 @@ class SubjectHandler:
         if not os.path.exists("../Result/"+subject + "_" + version+"/" ):
             os.makedirs("../Result/"+subject + "_" + version+"/" )
         for file in self.cosmed_shimmer.keys():
-            self.cosmed_shimmer[file].to_csv(full_name = "../Result/" + subject + "_" + version + "/"+ file,index=False)
+            self.cosmed_shimmer[file].to_csv("../Result/" + subject + "_" + version + "/"+ file,index=False)
 
     def show_cos_shim(self,file):
         return self.cosmed_shimmer[file]
