@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 
 
 def convert_time(starting_time, row):
+    if len(starting_time.values[0]) < 6:
+        starting_time = starting_time.values[0]+":00"
     measured_time = datetime.strptime(starting_time.values[0], '%H:%M:%S').time()
     delta_time = timedelta(hours=measured_time.hour, minutes=measured_time.minute, seconds=measured_time.second)
     x = delta_time + timedelta(hours=row.hour, minutes=row.minute, seconds=row.second)
