@@ -69,6 +69,7 @@ class SubjectHandler:
                 self.cosmed_shimmer[k] = self.cosmed_shimmer[k].iloc[index_not_null:,:].reset_index(drop=True)
             except:
                 print(k)
+                self.invalid_files.append(k)
             # self.cosmed_shimmer[k] = remove_na_values(self.cosmed_shimmer[k])
             # self.cosmed_shimmer[k].fillna(method='ffill', inplace=True)
 
