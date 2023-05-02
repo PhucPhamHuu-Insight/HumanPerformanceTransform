@@ -44,14 +44,14 @@ class SubjectHandler:
 
     def verify_shimmer(self):
         log_data = self.cosmed_object.log_data
-        start_time_temp = log_data[(log_data["Subject"] == self.subject) &
-                                   (log_data["Sensor Name"] == "Cosmed") &
-                                   (log_data["Visit"] == int(self.version[-1]))]["Local Time"]
-        start_time = datetime.strptime(start_time_temp.tolist()[0], "%H:%M:%S").time()
+        start_time_temp = log_data[(log_data["subject"] == subject) &
+                      (log_data["file_name"].str.contains("cosmed")) &
+                      (log_data["visit"] == version)]["actual_time"]
+        # start_time = datetime.strptime(start_time_temp.tolist()[0], "%H:%M:%S").time()
         # print("         Log time", start_time)
         for k, v in self.shimmer_data.items():
-            start_time_shimmer = v["time_no_milli"].tolist()[0]
-            time_diff = abs((timedelta(hours=start_time.hour, minutes=start_time.minute, seconds=start_time.second)
+            start_time_shimmer = v["time_no_milli"].dropna().tolist()[0]
+            time_diff = abs((timedelta(hours=start_time_temp.hour, minutes=start_time_temp.minute, seconds=start_time_temp.second)
                              - timedelta(hours=v["time_no_milli"].tolist()[0].hour,
                                          minutes=v["time_no_milli"].tolist()[0].minute,
                                          seconds=v["time_no_milli"].tolist()[0].second)) \
@@ -64,6 +64,11 @@ class SubjectHandler:
         for k, v in self.shimmer_data.items():
             self.cosmed_shimmer[k] = v.merge(self.cosmed_data, how='left', left_on="time_no_milli", right_on="time")
             self.cosmed_shimmer[k].reset_index(drop=True, inplace=True)
+            try:
+                index_not_null = self.cosmed_shimmer[k][self.cosmed_shimmer[k]["t_s"].notna()].index.tolist()[0]
+                self.cosmed_shimmer[k] = self.cosmed_shimmer[k].iloc[index_not_null:,:].reset_index(drop=True)
+            except:
+                print(k)
             # self.cosmed_shimmer[k] = remove_na_values(self.cosmed_shimmer[k])
             # self.cosmed_shimmer[k].fillna(method='ffill', inplace=True)
 
@@ -81,7 +86,7 @@ class SubjectHandler:
 
 
 if __name__ == '__main__':
-    testing_log = "../allsubjects_testing_log.csv"
+    testing_log = "../shimmer_timelog.xlsx"
     for folder in os.listdir("../"):
         print("Folder", folder)
         if "subject" in folder and "allsubjects" not in folder :
@@ -93,7 +98,7 @@ if __name__ == '__main__':
             print("         Transforming ...")
             subject_handle.transform()
             print("         Verifying Shimmer data ...")
-            subject_handle.verify_shimmer()
+            # subject_handle.verify_shimmer()
             print("         Combining cosmed and shimmer ...")
             subject_handle.combine_cos_shim()
             print("         Write to files ...")

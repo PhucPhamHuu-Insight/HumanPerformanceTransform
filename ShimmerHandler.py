@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import os
-
+import numpy as np
 
 def get_shimmer_file(subject, version):
     return [s for s in os.listdir("../" + subject + "_" + version + "/") if
@@ -30,12 +30,8 @@ class ShimmerHandler:
                 v["time"] = v[shimmer_timestamp_col].apply(lambda x: datetime.fromtimestamp(x / 1000.0))
                 v["time_no_milli"] = v["time"].apply(
                     lambda x: datetime.strptime(str(x).split(" ")[1][:8], "%H:%M:%S").time())
-                # testing_df = v[["time_no_milli","Arm_R_8A44_Mag_Z_CAL_local_flux"]]
-                # replace_nan_shimmer = self.shimmer_data[self.shimmer_data["time_no_milli"].duplicated()]
-                # replace_nan_shimmer["time_no_milli"] = ""
-                # self.shimmer_data.update(replace_nan_shimmer)
-                # self.shimmer_data["time"] = self.shimmer_data["time"].replace("", np.nan)
-                # self.shimmer_data.drop(columns=[shimmer_timestamp_col],inplace=True)
+                time_last_milli_series = v.duplicated(subset=['time_no_milli'],keep="last")
+                v.loc[time_last_milli_series.tolist(), "time_no_milli"] = np.nan
         return self.full_shimmer_file
 
     def show_data(self, file):
