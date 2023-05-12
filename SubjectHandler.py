@@ -122,7 +122,7 @@ if __name__ == '__main__':
     testing_log = "../shimmer_timelog.xlsx"
     for folder in os.listdir("../"):
         print("Folder", folder)
-        if "subject" in folder and "allsubjects" not in folder:
+        if "subject3_v2" in folder and "allsubjects" not in folder:
             subject = folder.split("_")[0]
             version = folder.split("_")[1]
             print("         Initializing ...")
