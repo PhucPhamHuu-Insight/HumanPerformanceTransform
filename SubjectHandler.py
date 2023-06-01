@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 from CosmedHandler import CosmedHandler
 from ShimmerHandler import ShimmerHandler
+from SummaryHandler import SummaryHandler
 from tsfresh.feature_extraction import feature_calculators
 from tsfresh.feature_extraction import extract_features
 
@@ -28,6 +29,7 @@ class SubjectHandler:
         # Objects
         self.cosmed_object = None
         self.shimmer_object = None
+        self.summary_object = None
         # Data
         self.cosmed_data = None
         self.shimmer_data = None
@@ -40,10 +42,12 @@ class SubjectHandler:
     def initialize_data(self):
         self.cosmed_object = CosmedHandler(subject, version, self.testing_log)
         self.shimmer_object = ShimmerHandler(subject, version)
+        self.summary_object = SummaryHandler(subject,version)
 
     def transform(self):
         self.cosmed_data = self.cosmed_object.transform()
         self.shimmer_data = self.shimmer_object.transform()
+        self.summary_data = self.summary_object.transform()
 
     def verify_shimmer(self):
         log_data = self.cosmed_object.log_data
@@ -99,17 +103,31 @@ class SubjectHandler:
                 breath_compress = pd.concat(lst_results,axis=1)
                 breath_compress["Rows"]=str(breath_df.index.tolist()[0])+"_"+str(breath_df.index.tolist()[-1])
                 breath_ls.append(breath_compress)
-            final_res = pd.concat(breath_ls).reset_index(drop=True)
-            combine_with_orgi_data = pd.concat([all_data.reset_index(drop=True), final_res], axis=1)
-            self.compressed_data[k]=combine_with_orgi_data
+            try:
+                final_res = pd.concat(breath_ls).reset_index(drop=True)
+                combine_with_orgi_data = pd.concat([all_data.reset_index(drop=True), final_res], axis=1)
+                self.compressed_data[k]=combine_with_orgi_data
+            except:
+                print(k)
+
+    def combine_summary(self):
+        for k,v in self.compressed_data.items():
+            self.compressed_data[k] = v.merge(self.summary_data[["time","HR","BR"]], how='left', left_on="time_no_milli", right_on="time")
+            self.compressed_data[k].reset_index(drop=True, inplace=True)
 
     def write_to_files(self):
         if not os.path.exists("../Result/" + subject + "_" + version + "/"):
             os.makedirs("../Result/" + subject + "_" + version + "/")
+        if not os.path.exists("../Result/" + subject + "_" + version + "/Compressed Data/"):
+            os.makedirs("../Result/" + subject + "_" + version + "/Compressed Data/")
+
         for file in self.cosmed_shimmer.keys():
-            self.cosmed_shimmer[file].to_csv("../Result/" + subject + "_" + version + "/" + "compressed_"+file, index=False)
-        for file in self.compressed_data.keys():
-            self.compressed_data[file].to_csv("../Result/" + subject + "_" + version + "/" + "compressed_"+file, index=False)
+            self.cosmed_shimmer[file].to_csv("../Result/" + subject + "_" + version + "/" +file, index=False)
+        try:
+            for file in self.compressed_data.keys():
+                self.compressed_data[file].to_csv("../Result/" + subject + "_" + version + "/Compressed Data/" + "compressed_"+file, index=False)
+        except:
+            print (self.compressed_data[file])
         with open("../Result/" + subject + "_" + version + "/invalid_files.txt", "w") as f:
             for item in self.invalid_files:
                 f.write("%s\n" % item)
@@ -122,7 +140,7 @@ if __name__ == '__main__':
     testing_log = "../shimmer_timelog.xlsx"
     for folder in os.listdir("../"):
         print("Folder", folder)
-        if "subject3_v2" in folder and "allsubjects" not in folder:
+        if "subject" in folder and "allsubjects" not in folder and "subject5" in folder:
             subject = folder.split("_")[0]
             version = folder.split("_")[1]
             print("         Initializing ...")
@@ -136,6 +154,8 @@ if __name__ == '__main__':
             subject_handle.combine_cos_shim()
             print("         Compress data...")
             subject_handle.compress_data_btw_breath()
+            print("         Integrate to summary file")
+            subject_handle.combine_summary()
             print("         Write to files ...")
             subject_handle.write_to_files()
     print("done")
